@@ -11,26 +11,34 @@ def validar_alumno(data):
     if not data: return False
     campos_requeridos = {"nombres": str, "apellidos": str, "matricula": str, "promedio": (int, float)}
     for campo, tipo in campos_requeridos.items():
-        if campo not in data or not isinstance(data[campo], tipo) or data[campo] == "":
+        # Validar existencia, nulos, tipo de dato y vacíos
+        if campo not in data or data[campo] is None or not isinstance(data[campo], tipo) or data[campo] == "":
             return False
+    # El test exige rechazar promedios negativos
+    if data['promedio'] < 0:
+        return False
     return True
 
 def validar_profesor(data):
     if not data: return False
-    campos_requeridos = {"numeroEmpleado": str, "nombres": str, "apellidos": str, "horasClase": int}
+    # El test de Java envía numeroEmpleado como un número entero (int), no string
+    campos_requeridos = {"numeroEmpleado": int, "nombres": str, "apellidos": str, "horasClase": int}
     for campo, tipo in campos_requeridos.items():
-        if campo not in data or not isinstance(data[campo], tipo) or data[campo] == "":
+        if campo not in data or data[campo] is None or not isinstance(data[campo], tipo) or data[campo] == "":
             return False
+    # El test exige rechazar horas negativas
+    if data['horasClase'] < 0:
+        return False
     return True
 
 def obtener_nuevo_id(coleccion):
     return 1 if not coleccion else max(item['id'] for item in coleccion) + 1
 
-# ================= ENDPOINTS ALUMNOS ================= [cite: 18-23]
+# ================= ENDPOINTS ALUMNOS =================
 @app.route('/alumnos', methods=['GET'])
 def get_alumnos():
     try:
-        return jsonify(alumnos), 200 # Devuelve [] si está vacío [cite: 45, 47]
+        return jsonify(alumnos), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -48,7 +56,8 @@ def create_alumno():
         return jsonify({"error": "Datos inválidos o incompletos"}), 400
     
     nuevo_alumno = {
-        "id": obtener_nuevo_id(alumnos),
+        # Si el test envía un ID, lo respetamos; si no, generamos uno
+        "id": data.get('id', obtener_nuevo_id(alumnos)),
         "nombres": data['nombres'],
         "apellidos": data['apellidos'],
         "matricula": data['matricula'],
@@ -84,7 +93,7 @@ def delete_alumno(id):
     alumnos = [a for a in alumnos if a['id'] != id]
     return jsonify({"mensaje": "Alumno eliminado"}), 200
 
-# ================= ENDPOINTS PROFESORES ================= [cite: 25-29]
+# ================= ENDPOINTS PROFESORES =================
 @app.route('/profesores', methods=['GET'])
 def get_profesores():
     return jsonify(profesores), 200
@@ -103,7 +112,8 @@ def create_profesor():
         return jsonify({"error": "Datos inválidos o incompletos"}), 400
     
     nuevo_profesor = {
-        "id": obtener_nuevo_id(profesores),
+        # Respetamos el ID forzado por el test
+        "id": data.get('id', obtener_nuevo_id(profesores)),
         "numeroEmpleado": data['numeroEmpleado'],
         "nombres": data['nombres'],
         "apellidos": data['apellidos'],
@@ -140,5 +150,4 @@ def delete_profesor(id):
     return jsonify({"mensaje": "Profesor eliminado"}), 200
 
 if __name__ == '__main__':
-    # Escucha en el puerto 80 para poder acceder directo desde el DNS de AWS
     app.run(host='0.0.0.0', port=80)

@@ -17,7 +17,7 @@ def validar_alumno(data):
 
 def validar_profesor(data):
     if not data: return False
-    campos_requeridos = {"numero_empleado": str, "nombres": str, "apellidos": str, "horas_clase": int}
+    campos_requeridos = {"numeroEmpleado": str, "nombres": str, "apellidos": str, "horasClase": int}
     for campo, tipo in campos_requeridos.items():
         if campo not in data or not isinstance(data[campo], tipo) or data[campo] == "":
             return False
@@ -104,10 +104,10 @@ def create_profesor():
     
     nuevo_profesor = {
         "id": obtener_nuevo_id(profesores),
-        "numero_empleado": data['numero_empleado'],
+        "numeroEmpleado": data['numeroEmpleado'],
         "nombres": data['nombres'],
         "apellidos": data['apellidos'],
-        "horas_clase": data['horas_clase']
+        "horasClase": data['horasClase']
     }
     profesores.append(nuevo_profesor)
     return jsonify(nuevo_profesor), 201
@@ -123,10 +123,10 @@ def update_profesor(id):
         return jsonify({"error": "Profesor no encontrado"}), 404
     
     profesor.update({
-        "numero_empleado": data['numero_empleado'],
+        "numeroEmpleado": data['numeroEmpleado'],
         "nombres": data['nombres'],
         "apellidos": data['apellidos'],
-        "horas_clase": data['horas_clase']
+        "horasClase": data['horasClase']
     })
     return jsonify(profesor), 200
 
